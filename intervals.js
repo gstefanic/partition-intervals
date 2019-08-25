@@ -33,6 +33,7 @@ function union(s, a) {
         }
         if (a[1] > s.value[1]) {
             if (!s.value[1]) {
+            // if (!s.right.value) {
                 console.log("case 3")
                 s.value[1] = a[1]
             } else {
@@ -500,7 +501,7 @@ Interval.prototype.isEmpty = function() {
  * @return {Interval}
  */
 Interval.prototype.intersect = function(interval) {
-    return this.assign(Interval.intersect(this, interval))
+    return Interval.intersect(this.copy(), interval)
 }
 
 /**
@@ -508,7 +509,7 @@ Interval.prototype.intersect = function(interval) {
  * @return {Interval}
  */
 Interval.prototype.union = function(interval) {
-    return this.assign(Interval.intersect(this, interval))
+    return Interval.union(this.copy(), interval)
 }
 
 /**
@@ -516,7 +517,7 @@ Interval.prototype.union = function(interval) {
  * @return {Interval}
  */
 Interval.prototype.difference = function(interval) {
-    return this.assign(Interval.difference(this, interval))
+    return Interval.difference(this.copy(), interval)
 }
 
 /**
@@ -532,19 +533,19 @@ Interval.intersect = function(interval1, interval2) {
     var leftRight = interval1.leftBound.compareTo(interval2.rightBound)
     // console.log(leftLeft, rightLeft, leftRight, rightRight)
     if (rightLeft < 0 || leftRight > 0 || interval1.isEmpty() || interval2.isEmpty()) 
-        return Interval.LeftOpenRightOpen(0, 0)
+        return interval1.assign(Interval.EmptyInterval())
     
     var leftLeft = interval1.leftBound.compareTo(interval2.leftBound)
     var rightRight = interval1.rightBound.compareTo(interval2.rightBound)
     if (leftLeft <= 0 && rightRight >= 0) 
-        return interval2.copy()
+        return interval1.assign(interval2.copy())
     if (leftLeft >= 0 && rightRight <= 0) 
-        return interval1.copy()
+        return interval1
     if (leftLeft <= 0 && rightLeft >= 0) 
-        return new Interval(interval2.leftBound.copy(), interval1.rightBound.copy())
+        return interval1.assign(new Interval(interval2.leftBound.copy(), interval1.rightBound.copy()))
     if (rightRight >= 0 && leftRight <= 0) 
-        return new Interval(interval1.leftBound.copy(), interval2.rightBound.copy())
-    return Interval.LeftOpenRightOpen(0,0)
+        return interval1.assign(new Interval(interval1.leftBound.copy(), interval2.rightBound.copy()))
+    return interval1.assign(Interval.EmptyInterval())
 }
 
 /**
@@ -557,11 +558,11 @@ Interval.union = function(interval1, interval2) {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
     if (interval1.isEmpty())
-        return interval2.copy()
+        return interval1.assign(interval2.copy())
     if (interval2.isEmpty())
-        return interval1.copy()
-    if (Interval.intersect(interval1, interval2).isEmpty()) {
-        return Interval.EmptyInterval()
+        return interval1
+    if (interval1.intersect(interval2).isEmpty()) {
+        return interval1.assign(Interval.EmptyInterval())
     }
 
     var leftLeft = interval1.leftBound.compareTo(interval2.leftBound)
@@ -569,7 +570,7 @@ Interval.union = function(interval1, interval2) {
     var leftBound = (leftLeft < 0) ? (interval1.leftBound.copy()) : (interval2.leftBound.copy())
     var rightBound = (rightRight > 0) ? (interval1.rightBound.copy()) : (interval2.rightBound.copy())
     
-    return new Interval(leftBound, rightBound)
+    return interval1.assign(new Interval(leftBound, rightBound))
 }
 
 /**
@@ -581,13 +582,8 @@ Interval.difference = function(interval1, interval2) {
     if (!(interval1 instanceof Interval && interval2 instanceof Interval)) {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
-    if (interval1.isEmpty())
-        return interval1.copy()
-    if (interval2.isEmpty())
-        return interval1.copy()
-    var intersection = Interval.intersect(interval1, interval2)
-    if (intersection.isEmpty()) {
-        return interval1.copy()
+    if (interval1.isEmpty() || interval2.isEmpty() || interval1.intersect(interval2).isEmpty()) {
+        return interval1
     }
     var leftLeft = interval1.leftBound.compareTo(interval2.leftBound)
     var leftBound
@@ -599,7 +595,7 @@ Interval.difference = function(interval1, interval2) {
         leftBound = interval2.rightBound.complement()
         rightBound = interval1.rightBound.copy()
     }
-    return new Interval(leftBound, rightBound)
+    return interval1.assign(new Interval(leftBound, rightBound))
 }
 
 /**
