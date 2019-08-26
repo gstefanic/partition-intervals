@@ -2,77 +2,6 @@ var ERROR_WRONG_ARGUMENTS = "Wrong arguments!"
 var ERROR_ABSTRACT_CLASS = "Abstract class!"
 var ERROR_ABSTRACT_METHOD = "Abstract method!"
 
-function union(s, a) {
-    console.log(JSON.stringify(a))
-    if (!s.value) {
-        console.log("case 0")
-        return {
-            value: a,
-            left: {height: 0},
-            right: {height: 0},
-            height: 1
-        }
-    } else if (a[0] >= s.value[0] && a[1] <= s.value[1]) {
-        console.log("case 0.1")
-        return s
-    } else if (a[1] < s.value[0]) {
-        console.log("case 0.2")
-        s.left = union(s.left, a)
-    } else if (a[0] > s.value[1]) {
-        console.log("case 0.3")
-        s.right = union(s.right, a)
-    } else {
-        if (a[0] < s.value[0]) {
-            if (!s.left.value && a[1] <= s.value[1]) {
-                console.log("case 1")
-                s.value[0] = a[0]
-            } else {
-                console.log("case 2")
-                s.left = union(s.left, [a[0], Math.min(s.value[0], a[1])])
-            }
-        }
-        if (a[1] > s.value[1]) {
-            if (!s.value[1]) {
-            // if (!s.right.value) {
-                console.log("case 3")
-                s.value[1] = a[1]
-            } else {
-                console.log("case 4")
-                s.right = union(s.right, [Math.max(s.value[1], a[0]), a[1]])
-            }
-        }
-    }
-    if (s.left.value && s.left.value[1] === s.value[0]) {
-        s.value[0] = s.left.value[0]
-        var tmp = s.left
-        s.left = s.left.left
-        delete tmp
-    }
-    if (s.right.value && s.right.value[0] === s.value[1]) {
-        s.value[1] = s.right.value[1]
-        var tmp = s.right
-        s.right = s.right.right
-        delete tmp
-    }
-    return s
-}
-function toString(s) {
-    if (!s || !s.value) {
-        return " "
-    } else {
-        return toString(s.left) + "(" + s.value[0] + ", " + s.value[1] + ")" + toString(s.right)
-    }
-}
-// var s = {height: 0,}
-// s = union(s, [1,2])
-// s = union(s, [8,9])
-// s = union(s, [3,4])
-// s = union(s, [4,6])
-// // s = union(s, [2,8])
-// console.log(toString(s))
-// console.log(JSON.stringify(s))
-// console.log(s)
-
 /*
 PartitionInterval
  - properties:
@@ -845,6 +774,17 @@ PartitionInterval.prototype.toString = function() {
         var right = this.right.toString()
         return (left ? left + " " : "") + this.interval.toString() + (right ? " " + right : "")
     }
+}
+
+/**
+ * @return {Array<Interval>}
+ */
+PartitionInterval.prototype.toArray = function() {
+    if (!this.interval) return []
+    var left = this.left.toArray()
+    var right = this.right.toArray()
+    left.push(this.interval)
+    return left.concat(right)
 }
 
 /************************************************************/

@@ -285,6 +285,41 @@ function testInterval(tests) {
     });
 }
 
+var testsPartitionIntervalUnion = [{
+        intervals: [
+            Interval.LeftOpenRightClosed(6, 10),
+            Interval.LeftClosedRightClosed(12, 14),
+            Interval.LeftClosedRightOpen(0, 3),
+            Interval.LeftClosedRightClosed(4, 8),
+        ],
+        result: [
+            Interval.LeftClosedRightOpen(0, 3),
+            Interval.LeftClosedRightClosed(4, 10),
+            Interval.LeftClosedRightClosed(12, 14),
+        ],
+        f: PartitionInterval.union
+    }
+]
+
+function testPartitionInterval(tests) {
+    tests.forEach(function(test) {
+        var pi = new PartitionInterval()
+        test.intervals.forEach(function(interval) {
+            test.f(pi, interval)
+        })
+        var result = pi.toArray()
+        if (result.length === test.result.length) {
+            result.forEach(function(interval, i) {
+                if (!interval.equals(test.result[i])) {
+                    throw new Error()
+                }
+            })
+        } else {
+            throw new Error("PartitionInterval.union(): ERROR " + result, test.result)
+        }
+    })
+}
+
 function test() {
     testBounds(boundsTests)
 
@@ -297,28 +332,8 @@ function test() {
     testInterval(intervalDifferenceTests)
     console.log("Interval.difference(): OK")
     
-    // var i1 = Interval.LeftClosedRightClosed(0,5)
-    // var i2 = Interval.LeftClosedRightClosed(4,8)
+    testPartitionInterval(testsPartitionIntervalUnion)
+    console.log("PartitionInterval.union(): OK")
 
-    // var i3 = i1.difference(i2)
-    // var i4 = Interval.difference(i1, i2)
-
-    // console.log(i1.toString(), i2.toString(), i3.toString(), i4.toString())
-
-    // var a = union({h: 0}, [5,9])
-    // a = union(a, [0,2])
-    // a = union(a, [16,20])
-    // a = union(a, [11,13])
-    // a = union(a, [7,12])
-    // console.log(toString(a))
-
-    var i1 = Interval.LeftClosedRightClosed(0,10).intersect(Interval.LeftOpenRightClosed(3,12)).difference(Interval.LeftClosedRightClosed(3,6))
-    console.log(i1.toString())
-
-    var pi = new PartitionInterval(i1)
-    pi.union(Interval.LeftClosedRightClosed(12, 14))
-    pi.union(Interval.LeftClosedRightOpen(0, 3))
-    pi.union(Interval.LeftClosedRightClosed(4, 8))
-    console.log(pi.toString())
     console.log("DONE")
 }
