@@ -301,9 +301,23 @@ var testsPartitionIntervalUnion = [{
     }
 ]
 
+var testsPartitionIntervalDifference = [{
+    intervals: [
+        Interval.LeftOpenRightClosed(6, 10),
+        Interval.LeftClosedRightClosed(12, 14),
+        Interval.LeftClosedRightOpen(0, 3),
+        Interval.LeftClosedRightClosed(4, 8),
+    ],
+    result: [
+        Interval.LeftOpenRightClosed(8, 10),
+    ],
+    f: PartitionInterval.difference
+}
+]
+
 function testPartitionInterval(tests) {
     tests.forEach(function(test) {
-        var pi = new PartitionInterval()
+        var pi = new PartitionInterval(test.intervals.shift())
         test.intervals.forEach(function(interval) {
             test.f(pi, interval)
         })
@@ -311,11 +325,11 @@ function testPartitionInterval(tests) {
         if (result.length === test.result.length) {
             result.forEach(function(interval, i) {
                 if (!interval.equals(test.result[i])) {
-                    throw new Error()
+                    throw new Error("PartitionInterval " + result + " instead of " + test.result)
                 }
             })
         } else {
-            throw new Error("PartitionInterval.union(): ERROR " + result, test.result)
+            throw new Error("PartitionInterval " + result + " instead of " + test.result)
         }
     })
 }
@@ -334,6 +348,16 @@ function test() {
     
     testPartitionInterval(testsPartitionIntervalUnion)
     console.log("PartitionInterval.union(): OK")
+    
+    testPartitionInterval(testsPartitionIntervalDifference)
+    console.log("PartitionInterval.difference(): OK")
 
     console.log("DONE")
+
+    // var pi = new PartitionInterval(Interval.LeftClosedRightClosed(0, 10))
+
+    // PartitionInterval.difference(pi, Interval.LeftClosedRightClosed(6,60))
+
+    // console.log(pi.toString())
+
 }

@@ -54,16 +54,6 @@ RightBoundOpen
 RightBoundClosed
 /**/
 
-// ---------------- CompareResults Enum ---------------- //
-var CompareResults = Object.freeze({
-    "SUPERSET":   0,
-    "EXTENDS_LEFT": 1,
-    "EXTENDS_RIGHT":  2,
-    "SUBSET":  3,
-    "DISJOINT_LEFT":  4,
-    "DISJOINT_RIGHT":  5,
-})
-
 // -------------------- Bound Class -------------------- //
 /**
  * @constructor
@@ -667,7 +657,15 @@ PartitionInterval.prototype.assign = function(partitionInterval) {
  * @return {PartitionInterval}
  */
 PartitionInterval.prototype.union = function(interval) {
-    return PartitionInterval.union(this, interval)
+    return PartitionInterval.union(this.copy(), interval)
+}
+
+/**
+ * @param {Interval} interval
+ * @return {PartitionInterval}
+ */
+PartitionInterval.prototype.difference = function(interval) {
+    return PartitionInterval.difference(this.copy(), interval)
 }
 
 /**
@@ -676,7 +674,7 @@ PartitionInterval.prototype.union = function(interval) {
  * @return {PartitionInterval}
  */
 PartitionInterval.union = function(partitionInterval, interval) {
-    if (!(partitionInterval instanceof PartitionInterval)) {
+    if (!(partitionInterval instanceof PartitionInterval) || !(interval instanceof Interval)) {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
     // console.log("Inserting " + interval.toString() + " into " + partitionInterval.toString())
@@ -726,6 +724,160 @@ PartitionInterval.union = function(partitionInterval, interval) {
         }
     }
     return partitionInterval
+}
+
+/**
+ * @param {PartitionInterval} partitionInterval
+ * @param {Interval} interval
+ * @return {PartitionInterval}
+ */
+PartitionInterval.difference = function(partitionInterval, interval) {
+    if (!(partitionInterval instanceof PartitionInterval) || !(interval instanceof Interval)) {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
+    }
+    if (!partitionInterval.interval) {
+        // ce je prazen list
+        return partitionInterval
+    }
+    if (partitionInterval.interval.isEmpty()) {
+        // ce je praze, ga naredi da je prazen list
+        return partitionInterval.assign(new PartitionInterval())
+    }
+    if (partitionInterval.interval.includes(interval)) {
+        // partitionInterval.interval razdeli na dva dela
+        var newRight = new PartitionInterval(
+            new Interval(
+                interval.rightBound.complement(),
+                partitionInterval.interval.rightBound
+            )
+        )
+        // desni del originalnega nastavi kot desnega od desnega dela
+        newRight.right.assign(partitionInterval.right)
+        // desni del nastavi kot desni del levega dela
+        partitionInterval.right.assign(newRight)
+        // skrci originalni interval
+        partitionInterval.interval.assign(
+            new Interval(
+                partitionInterval.interval.leftBound,
+                interval.leftBound.complement()
+            )
+        )
+    } else {
+        if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
+            // rekurzivno poklici difference nad levim otrokom
+            PartitionInterval.difference(
+                partitionInterval.left,
+                new Interval(
+                    interval.leftBound.copy(),
+                    partitionInterval.interval.leftBound.complement()
+                )
+            )
+            // skrci interval
+            Interval.difference(partitionInterval.interval, interval)
+        }
+    
+        if (partitionInterval.interval.isEmpty() || interval.rightBound.compareTo(partitionInterval.interval.rightBound) > 0) {
+            // rekurzivno poklici difference nad desnim otrokom
+            PartitionInterval.difference(
+                partitionInterval.right,
+                new Interval(
+                    partitionInterval.interval.rightBound.complement(),
+                    interval.rightBound.copy()
+                )
+            )
+            // skrci interval
+            Interval.difference(partitionInterval.interval, interval)
+        }
+    
+    }
+    if (partitionInterval.interval.isEmpty()) {
+        // to pomeni, da je blo interval.includes(partitionInterval.interval) na zacetku true
+        // naredi unijo med desnim otrokom in desnim otrokom levega otroka
+        if (partitionInterval.left.right) {
+            // // TODO: optimiziraj, lahko ga nastavis kot najbolj levega, ker ves da so vsi manjsi
+            // partitionInterval.left.right.toArray().forEach(function(interval) {
+            //     PartitionInterval.union(partitionInterval.right, interval)
+            // })
+            PartitionInterval.setAsLeftmost(partitionInterval.right, partitionInterval.left.right, true)
+        } else {
+            partitionInterval.left.right = new PartitionInterval()
+        }
+
+
+        // nastavi desnega otroka kot desnega otroka levega otroka
+        partitionInterval.left.right.assign(partitionInterval.right)
+
+        // nastavi levega otroka kot partitionInterval
+        partitionInterval.assign(partitionInterval.left)
+    }
+
+    return partitionInterval
+}
+
+/**
+ * @param {PartitionInterval} partitionInterval1
+ * @param {PartitionInterval} partitionInterval2
+ * @param {boolean} force Skip check if `true`
+ * @return {PartitionInterval}
+ */
+PartitionInterval.setAsLeftmost = function(partitionInterval1, partitionInterval2, force) {
+    if (!(partitionInterval1 instanceof PartitionInterval) || !(partitionInterval2 instanceof PartitionInterval)) {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
+    }
+    if (force || 
+        partitionInterval2.rightMost().interval.rightBound.compareTo(partitionInterval1.leftMost().interval.leftBound) < 0) {
+        if (!partitionInterval1.left.interval) {
+            return partitionInterval1.assign(partitionInterval2)
+        } else {
+            PartitionInterval.setAsLeftmost(partitionInterval1.left, partitionInterval2, true)
+        }
+    } else {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
+    }
+}
+
+/**
+ * @param {PartitionInterval} partitionInterval1
+ * @param {PartitionInterval} partitionInterval2
+ * @param {boolean} force Skip check if `true`
+ * @return {PartitionInterval}
+ */
+PartitionInterval.setAsLeftmost = function(partitionInterval1, partitionInterval2, force) {
+    if (!(partitionInterval1 instanceof PartitionInterval) || !(partitionInterval2 instanceof PartitionInterval)) {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
+    }
+    if (force || 
+        partitionInterval2.rightMost().interval.rightBound.compareTo(partitionInterval1.leftMost().interval.leftBound) < 0) {
+        if (!partitionInterval1.left.interval) {
+            return partitionInterval1.assign(partitionInterval2)
+        } else {
+            PartitionInterval.setAsLeftmost(partitionInterval1.left, partitionInterval2, true)
+        }
+    } else {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
+    }
+}
+
+/**
+ * @param {PartitionInterval} partitionInterval1
+ * @param {PartitionInterval} partitionInterval2
+ * @param {boolean} force Skip check if `true`
+ * @return {PartitionInterval}
+ */
+PartitionInterval.setAsRightmost = function(partitionInterval1, partitionInterval2, force) {
+    if (!(partitionInterval1 instanceof PartitionInterval) || !(partitionInterval2 instanceof PartitionInterval)) {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
+    }
+    if (force || 
+        partitionInterval2.leftMost().interval.leftBound.compareTo(partitionInterval1.rightMost().interval.rightBound) > 0) {
+        if (!partitionInterval1.right.interval) {
+            return partitionInterval1.assign(partitionInterval2)
+        } else {
+            PartitionInterval.setAsRightmost(partitionInterval1.right, partitionInterval2, true)
+        }
+    } else {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
+    }
 }
 
 /**
@@ -786,25 +938,3 @@ PartitionInterval.prototype.toArray = function() {
     left.push(this.interval)
     return left.concat(right)
 }
-
-/************************************************************/
-var Animal = function() {
-    if (this.constructor === Animal) {
-        throw new Error("Abstract class!");
-    }
-};
-
-Animal.prototype.say = function() {
-    throw new Error("Abstract method!");
-}
-
-var Cat = function() {
-    Animal.apply(this, arguments);
-};
-Cat.prototype = Object.create(Animal.prototype);
-Cat.prototype.constructor = Cat;
-
-Cat.prototype.say = function() {
-    console.log('meow');
-}
-/************************************************************/
