@@ -505,8 +505,12 @@ Interval.difference = function(interval1, interval2) {
         return interval1
     }
     var leftLeft = interval1.leftBound.compareTo(interval2.leftBound)
+    var rightRight = interval1.rightBound.compareTo(interval2.rightBound)
     var leftBound
     var rightBound
+    if (leftLeft === 0 && rightRight === 0) {
+        return interval1.assign(Interval.EmptyInterval())
+    }
     if (leftLeft < 0) {
         leftBound = interval1.leftBound.copy()
         rightBound = interval2.leftBound.complement()
@@ -583,9 +587,7 @@ Interval.assign = function(interval1, interval2) {
     if (!(interval1 instanceof Interval && interval2 instanceof Interval)) {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
-    // delete interval1.leftBound
     interval1.leftBound = interval2.leftBound
-    // delete interval1.rightBound
     interval1.rightBound = interval2.rightBound
     return interval1
 }
@@ -635,11 +637,8 @@ PartitionInterval.assign = function(partitionInterval1, partitionInterval2) {
     if (!(partitionInterval1 instanceof PartitionInterval && partitionInterval2 instanceof PartitionInterval)) {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
-    // delete partitionInterval1.interval
     partitionInterval1.interval = partitionInterval2.interval
-    // delete partitionInterval1.left
     partitionInterval1.left = partitionInterval2.left
-    // delete partitionInterval1.right
     partitionInterval1.right = partitionInterval2.right
     return partitionInterval1
 }
@@ -666,6 +665,14 @@ PartitionInterval.prototype.union = function(interval) {
  */
 PartitionInterval.prototype.difference = function(interval) {
     return PartitionInterval.difference(this.copy(), interval)
+}
+
+/**
+ * @param {Interval} interval
+ * @return {PartitionInterval}
+ */
+PartitionInterval.prototype.intersect = function(interval) {
+    return PartitionInterval.intersect(this.copy(), interval)
 }
 
 /**
@@ -699,7 +706,7 @@ PartitionInterval.union = function(partitionInterval, interval) {
             // pridobi najbolj desnega od levega poddrevesa
             var biggestInLeft = partitionInterval.left.rightMost()
             // preveri ali se stikata
-            if (biggestInLeft.interval.rightBound.complement().compareTo(partitionInterval.interval.leftBound) === 0) {
+            if (biggestInLeft.interval.rightBound.complement().compareTo(partitionInterval.interval.leftBound) >= 0) {
                 // razsiri pi na levo
                 partitionInterval.interval.leftBound = biggestInLeft.interval.leftBound
                 // prevezi
@@ -715,12 +722,10 @@ PartitionInterval.union = function(partitionInterval, interval) {
                 new Interval(partitionInterval.interval.rightBound.complement(), interval.rightBound)    
             )
         }
-        if (partitionInterval.interval.right) {
-            var smallestInRight = partitionInterval.interval.right.leftMost()
-            if (smallestInRight.interval.leftBound.complement().compareTo(partitionInterval.interval.rightBound) === 0) {
-                partitionInterval.interval.rightBound = smallestInRight.interval.rightBound
-                PartitionInterval.assign(smallestInRight, smallestInRight.right.copy())
-            }
+        var smallestInRight = partitionInterval.right.leftMost()
+        if (smallestInRight.interval.leftBound.complement().compareTo(partitionInterval.interval.rightBound) <= 0) {
+            partitionInterval.interval.rightBound = smallestInRight.interval.rightBound
+            PartitionInterval.assign(smallestInRight, smallestInRight.right.copy())
         }
     }
     return partitionInterval
@@ -790,6 +795,9 @@ PartitionInterval.difference = function(partitionInterval, interval) {
         }
     
     }
+    if (interval.includes(partitionInterval.interval)) {
+        partitionInterval.interval.assign(Interval.EmptyInterval())
+    }
     if (partitionInterval.interval.isEmpty()) {
         // to pomeni, da je blo interval.includes(partitionInterval.interval) na zacetku true
         // naredi unijo med desnim otrokom in desnim otrokom levega otroka
@@ -815,24 +823,74 @@ PartitionInterval.difference = function(partitionInterval, interval) {
 }
 
 /**
- * @param {PartitionInterval} partitionInterval1
- * @param {PartitionInterval} partitionInterval2
- * @param {boolean} force Skip check if `true`
+ * @param {PartitionInterval} partitionInterval
+ * @param {Interval} interval
  * @return {PartitionInterval}
  */
-PartitionInterval.setAsLeftmost = function(partitionInterval1, partitionInterval2, force) {
-    if (!(partitionInterval1 instanceof PartitionInterval) || !(partitionInterval2 instanceof PartitionInterval)) {
+PartitionInterval.intersect = function(partitionInterval, interval) {
+    if (!(partitionInterval instanceof PartitionInterval) || !(interval instanceof Interval)) {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
-    if (force || 
-        partitionInterval2.rightMost().interval.rightBound.compareTo(partitionInterval1.leftMost().interval.leftBound) < 0) {
-        if (!partitionInterval1.left.interval) {
-            return partitionInterval1.assign(partitionInterval2)
-        } else {
-            PartitionInterval.setAsLeftmost(partitionInterval1.left, partitionInterval2, true)
-        }
+    if (!partitionInterval.interval || partitionInterval.interval.isEmpty()) {
+        // ce je prazen, ga naredi da je prazen list
+        // return partitionInterval.assign(new PartitionInterval())
+        partitionInterval = new PartitionInterval()
+        return partitionInterval
+    }
+    if (partitionInterval.interval.includes(interval)) {
+        return partitionInterval.interval.assign(interval)
+    }
+    if (interval.includes(partitionInterval.interval)) {
+        PartitionInterval.intersect(
+            partitionInterval.left,
+            new Interval(
+                interval.leftBound.copy(),
+                partitionInterval.interval.leftBound.complement()
+            )
+        )
+        PartitionInterval.intersect(
+            partitionInterval.right,
+            new Interval(
+                partitionInterval.interval.rightBound.complement(),
+                interval.rightBound.copy()
+            )
+        )
+        return partitionInterval
     } else {
-        throw new Error(ERROR_WRONG_ARGUMENTS)
+        if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
+            return partitionInterval.assign(
+                PartitionInterval.union(
+                    PartitionInterval.intersect(
+                        partitionInterval.left,
+                        new Interval(
+                            interval.leftBound.copy(),
+                            partitionInterval.interval.leftBound.complement()
+                        )
+                    ), 
+                    new Interval(
+                        partitionInterval.interval.leftBound.copy(),
+                        interval.rightBound.copy()
+                    )
+                )
+            )
+        }
+        if (interval.rightBound.compareTo(partitionInterval.interval.rightBound) > 0) {
+            return partitionInterval.assign(
+                PartitionInterval.union(
+                    PartitionInterval.intersect(
+                        partitionInterval.right,
+                        new Interval(
+                            partitionInterval.interval.rightBound.complement(),
+                            interval.rightBound.copy()
+                        )
+                    ),
+                    new Interval(
+                        interval.leftBound.copy(),
+                        partitionInterval.interval.rightBound.copy()
+                    )
+                )
+            )
+        }
     }
 }
 
@@ -848,7 +906,9 @@ PartitionInterval.setAsLeftmost = function(partitionInterval1, partitionInterval
     }
     if (force || 
         partitionInterval2.rightMost().interval.rightBound.compareTo(partitionInterval1.leftMost().interval.leftBound) < 0) {
-        if (!partitionInterval1.left.interval) {
+        if (!partitionInterval1.left) {
+            partitionInterval1.assign(partitionInterval2)
+        } else if (!partitionInterval1.left.interval) {
             return partitionInterval1.assign(partitionInterval2)
         } else {
             PartitionInterval.setAsLeftmost(partitionInterval1.left, partitionInterval2, true)
@@ -903,18 +963,26 @@ PartitionInterval.prototype.leftMost = function() {
 }
 
 /**
+ * @param {boolean} deep If set to `true` then makes a deep copy
  * @return {PartitionInterval}
  */
-PartitionInterval.prototype.copy = function() {
+PartitionInterval.prototype.copy = function(deep) {
     var partitionInterval
     if (this.interval) {
         var partitionInterval = new PartitionInterval(this.interval.copy())
     } else {
         var partitionInterval = new PartitionInterval()
     }
-    partitionInterval.left = this.left
-    partitionInterval.right = this.right
+    partitionInterval.left = deep ? this.left.copy(deep) : this.left
+    partitionInterval.right = deep ? this.right.copy(deep) : this.right
     return partitionInterval
+}
+
+/**
+ * @return {boolean}
+ */
+PartitionInterval.prototype.isEmpty = function() {
+    return !this.interval || this.interval.isEmpty()
 }
 
 /**

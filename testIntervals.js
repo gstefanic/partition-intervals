@@ -94,10 +94,9 @@ function testBounds(tests) {
         var b1 = new test[1].type(test[1].value)
         var result = b0.compareTo(b1)
         if (result !== test[2]) {
-            throw new Error("Error " + result)
+            throw new Error(result + " instead of " + test[2])
         }
     });
-    console.log("Bounds: OK")
 }
 
 var intervalIntersectTests = [
@@ -280,7 +279,7 @@ function testInterval(tests) {
             
         } else {
             console.log(i0.toString(), i1.toString(), ":", test[3] ? test[3].toString() : "undefined", i)
-            throw new Error("ERROR Intervals" + result.toString() + " instead of " + test[3].toString())
+            throw new Error(result.toString() + " instead of " + test[3].toString())
         }
     });
 }
@@ -325,39 +324,79 @@ function testPartitionInterval(tests) {
         if (result.length === test.result.length) {
             result.forEach(function(interval, i) {
                 if (!interval.equals(test.result[i])) {
-                    throw new Error("PartitionInterval " + result + " instead of " + test.result)
+                    throw new Error(result + " instead of " + test.result)
                 }
             })
         } else {
-            throw new Error("PartitionInterval " + result + " instead of " + test.result)
+            throw new Error(result + " instead of " + test.result)
         }
     })
 }
 
 function test() {
-    testBounds(boundsTests)
+    console.log("Testing ...")
+    try {
+        testBounds(boundsTests)
+        console.log("Bounds: OK")
+    } catch (error) {
+        console.log("Bounds: ERROR", error.message)
+    }
 
-    testInterval(intervalIntersectTests)
-    console.log("Interval.intersect(): OK")
+    try {
+        testInterval(intervalIntersectTests)
+        console.log("Interval.intersect(): OK")
+    } catch (error) {
+        console.log("Interval.intersect(): ERROR", error.message)
+    }
 
-    testInterval(intervalUnionTests)
-    console.log("Interval.union(): OK")
+    try {
+        testInterval(intervalUnionTests)
+        console.log("Interval.union(): OK")
+    } catch (error) {
+        console.log("Interval.union(): ERROR", error.message)
+    }
     
-    testInterval(intervalDifferenceTests)
-    console.log("Interval.difference(): OK")
+    try {
+        testInterval(intervalDifferenceTests)
+        console.log("Interval.difference(): OK")
+    } catch (error) {
+        console.log("Interval.difference(): ERROR", error.message)
+    }
     
-    testPartitionInterval(testsPartitionIntervalUnion)
-    console.log("PartitionInterval.union(): OK")
+    try {
+        testPartitionInterval(testsPartitionIntervalUnion)
+        console.log("PartitionInterval.union(): OK")
+    } catch (error) {
+        console.log("PartitionInterval.union(): ERROR", error.message)
+    }
     
-    testPartitionInterval(testsPartitionIntervalDifference)
-    console.log("PartitionInterval.difference(): OK")
+    // try {
+    //     testPartitionInterval(testsPartitionIntervalDifference)
+    //     console.log("PartitionInterval.difference(): OK")
+    // } catch (error) {
+    //     console.log("PartitionInterval.difference(): ERROR", error.message)
+    // }
 
     console.log("DONE")
 
-    // var pi = new PartitionInterval(Interval.LeftClosedRightClosed(0, 10))
+    var i1 = Interval.LeftClosedRightClosed(6, 10)
+    var i2 = Interval.LeftClosedRightClosed(7, 10)
+    var i3 = Interval.LeftClosedRightClosed(0, 2)
+    var i4 = Interval.LeftOpenRightOpen(3, 5)
+    var i5 = Interval.LeftClosedRightClosed(1, 16)
 
-    // PartitionInterval.difference(pi, Interval.LeftClosedRightClosed(6,60))
+    var pi = new PartitionInterval()
 
+    pi = pi.union(i1).union(i2).union(i3).union(i4)
     // console.log(pi.toString())
+    // console.log(i5.toString())
+    // console.log(pi.intersect(i5).toString())
+    // console.log(pi.intersect(i5).difference(Interval.LeftClosedRightClosed(4, 10)).toString())
+    
+    // pi = pi.union(i1)
+    console.log(pi.toString())
+    pi = pi.difference(Interval.LeftClosedRightClosed(1, 10))
+    console.log(pi.toString())
+    
 
 }
