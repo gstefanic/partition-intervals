@@ -435,4 +435,28 @@ function test() {
     // console.log(Interval.LeftClosedRightClosed(2,5).includes(Interval.LeftOpenRightOpen(2,5)))
     // console.log(Interval.LeftClosedRightClosed(2,5).difference(Interval.LeftOpenRightOpen(2,5)).toString())
 
+    var operations = [
+        PartitionInterval.union,
+        // PartitionInterval.intersect,
+        PartitionInterval.difference,
+    ]
+    var intervals = [
+        Interval.LeftClosedRightClosed,
+        Interval.LeftClosedRightOpen,
+        Interval.LeftOpenRightClosed,
+        Interval.LeftOpenRightOpen,
+    ]
+    var pi = new PartitionInterval()
+    for (var i = 0; i < 1000; i++) {
+        // var rl = Math.floor(Math.random() * 1000)
+        // var rr = rl + Math.floor(Math.random() * 1000)
+        // var ri = Math.floor(Math.random() * intervals.length)
+        // var ro = Math.floor(Math.random() * operations.length)
+        // operations[ro](pi, intervals[ri](rl, rr))
+
+        operations[0](pi, intervals[3](i, i + 1))
+    }
+    console.log(pi.toString())
+    console.log(pi)
+
 }

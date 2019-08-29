@@ -685,6 +685,7 @@ PartitionInterval.prototype.intersect = function(interval) {
  */
 PartitionInterval.union = function(partitionInterval, interval) {
     if (!(partitionInterval instanceof PartitionInterval)) {
+        console.log(partitionInterval, interval)
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
     if (interval instanceof Interval) {
@@ -734,7 +735,7 @@ PartitionInterval.union = function(partitionInterval, interval) {
                 )
             }
             var smallestInRight = partitionInterval.right.leftMost()
-            if (smallestInRight && smallestInRight.interval.leftBound.complement().compareTo(partitionInterval.interval.rightBound) <= 0) {
+            if (smallestInRight && smallestInRight.interval && smallestInRight.interval.leftBound.complement().compareTo(partitionInterval.interval.rightBound) <= 0) {
                 partitionInterval.interval.rightBound = smallestInRight.interval.rightBound
                 PartitionInterval.assign(smallestInRight, smallestInRight.right.copy())
             }
@@ -875,7 +876,8 @@ PartitionInterval.intersect = function(partitionInterval, interval) {
             return partitionInterval
         }
         if (partitionInterval.interval.includes(interval)) {
-            return partitionInterval.interval.assign(interval)
+            partitionInterval.interval.assign(interval)
+            return partitionInterval
         }
         if (interval.includes(partitionInterval.interval)) {
             PartitionInterval.intersect(
