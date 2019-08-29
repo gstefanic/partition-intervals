@@ -314,11 +314,12 @@ var testsPartitionIntervalDifference = [
         intervals: [
             Interval.LeftOpenRightClosed(2, 8),
         ],
-        result: PartitionInterval.fromIntervals([
-            Interval.LeftClosedRightClosed(0, 2), 
-            Interval.LeftOpenRightClosed(8, 10), 
-            Interval.LeftClosedRightClosed(12, 14)
-        ]),
+        result:
+            PartitionInterval.fromIntervals([
+                Interval.LeftClosedRightClosed(0, 2), 
+                Interval.LeftOpenRightClosed(8, 10), 
+                Interval.LeftClosedRightClosed(12, 14)
+            ]),
         f: PartitionInterval.difference,
     },
     // {
@@ -414,6 +415,24 @@ function test() {
     // console.log(pi)
     // console.log(pi.difference(Interval.LeftOpenRightClosed(2, 8)).toString())
 
-    // console.log(Interval.LeftClosedRightOpen(0, 3).difference(Interval.LeftOpenRightClosed(2, 8)).toString())
+    // var pi1 = PartitionInterval.fromIntervals([
+    //     Interval.LeftClosedRightClosed(4,9),
+    //     Interval.LeftClosedRightClosed(0,3),
+    //     Interval.LeftClosedRightClosed(20, 21),
+    // ])
+    // console.log(pi1.toString())
+
+    // var pi2 = PartitionInterval.fromIntervals([
+    //     Interval.LeftOpenRightOpen(20, 21),
+        // Interval.LeftOpenRightOpen(2, 5),
+        // Interval.LeftOpenRightOpen(5, 9),
+    // ])
+    // console.log(pi2.toString())
+
+    // console.log(pi1.difference(pi2).toString())
+
+
+    // console.log(Interval.LeftClosedRightClosed(2,5).includes(Interval.LeftOpenRightOpen(2,5)))
+    // console.log(Interval.LeftClosedRightClosed(2,5).difference(Interval.LeftOpenRightOpen(2,5)).toString())
 
 }

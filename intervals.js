@@ -684,54 +684,70 @@ PartitionInterval.prototype.intersect = function(interval) {
  * @return {PartitionInterval}
  */
 PartitionInterval.union = function(partitionInterval, interval) {
-    if (!(partitionInterval instanceof PartitionInterval) || !(interval instanceof Interval)) {
+    if (!(partitionInterval instanceof PartitionInterval)) {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
-    // console.log("Inserting " + interval.toString() + " into " + partitionInterval.toString())
-    if (!partitionInterval.interval) {
-        return partitionInterval.assign(new PartitionInterval(interval))
-    }
-    if (partitionInterval.interval.includes(interval)) {
-        console.log("CASE 0.1")
-        return partitionInterval
-    }
-    if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
-        // levi rob intervala je bolj levo od levega roba
-        if (interval.rightBound.compareTo(partitionInterval.interval.leftBound) <= 0) {
-            // desni rob intervala je levo od levega roba
-            PartitionInterval.union(partitionInterval.left, interval)
-        } else {
-            PartitionInterval.union(partitionInterval.left, 
-                new Interval(interval.leftBound, partitionInterval.interval.leftBound.complement())
-            )
+    if (interval instanceof Interval) {
+        if (!partitionInterval.interval) {
+            return partitionInterval.assign(new PartitionInterval(interval))
         }
-        if (partitionInterval.left.rightMost()) {
+        if (partitionInterval.interval.includes(interval)) {
+            return partitionInterval
+        }
+        if (partitionInterval.interval.intersect(interval).isEmpty()) {
+            if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
+                PartitionInterval.union(partitionInterval.left, interval)
+            } else {
+                PartitionInterval.union(partitionInterval.right, interval)
+            }
+            return partitionInterval
+        }
+        if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
+            // levi rob intervala je bolj levo od levega roba
+            if (interval.rightBound.compareTo(partitionInterval.interval.leftBound) <= 0) {
+                // desni rob intervala je levo od levega roba
+                PartitionInterval.union(partitionInterval.left, interval)
+            } else {
+                PartitionInterval.union(partitionInterval.left, 
+                    new Interval(interval.leftBound, partitionInterval.interval.leftBound.complement())
+                )
+            }
             // pridobi najbolj desnega od levega poddrevesa
             var biggestInLeft = partitionInterval.left.rightMost()
-            // preveri ali se stikata
-            if (biggestInLeft.interval.rightBound.complement().compareTo(partitionInterval.interval.leftBound) >= 0) {
-                // razsiri pi na levo
-                partitionInterval.interval.leftBound = biggestInLeft.interval.leftBound
-                // prevezi
-                PartitionInterval.assign(biggestInLeft, biggestInLeft.left.copy())
+            if (biggestInLeft) {
+                // preveri ali se stikata
+                if (biggestInLeft.interval.rightBound.complement().compareTo(partitionInterval.interval.leftBound) >= 0) {
+                    // razsiri pi na levo
+                    partitionInterval.interval.leftBound = biggestInLeft.interval.leftBound
+                    // prevezi
+                    PartitionInterval.assign(biggestInLeft, biggestInLeft.left.copy())
+                }
             }
         }
-    }
-    if (interval.rightBound.compareTo(partitionInterval.interval.rightBound) > 0) {
-        if (interval.leftBound.compareTo(partitionInterval.interval.rightBound) >= 0) {
-            PartitionInterval.union(partitionInterval.right, interval)
-        } else {
-            PartitionInterval.union(partitionInterval.right,
-                new Interval(partitionInterval.interval.rightBound.complement(), interval.rightBound)    
-            )
+        if (interval.rightBound.compareTo(partitionInterval.interval.rightBound) > 0) {
+            if (interval.leftBound.compareTo(partitionInterval.interval.rightBound) <= 0) {
+                PartitionInterval.union(partitionInterval.right, interval)
+            } else {
+                PartitionInterval.union(
+                    partitionInterval.right,
+                    new Interval(partitionInterval.interval.rightBound.complement(), interval.rightBound)    
+                )
+            }
+            var smallestInRight = partitionInterval.right.leftMost()
+            if (smallestInRight && smallestInRight.interval.leftBound.complement().compareTo(partitionInterval.interval.rightBound) <= 0) {
+                partitionInterval.interval.rightBound = smallestInRight.interval.rightBound
+                PartitionInterval.assign(smallestInRight, smallestInRight.right.copy())
+            }
         }
-        var smallestInRight = partitionInterval.right.leftMost()
-        if (smallestInRight.interval.leftBound.complement().compareTo(partitionInterval.interval.rightBound) <= 0) {
-            partitionInterval.interval.rightBound = smallestInRight.interval.rightBound
-            PartitionInterval.assign(smallestInRight, smallestInRight.right.copy())
-        }
+        return partitionInterval
+    } else if (interval instanceof PartitionInterval) {
+        interval.toArray().forEach(function(interval) {
+            PartitionInterval.union(partitionInterval, interval)
+        })
+        return partitionInterval
+    } else {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
     }
-    return partitionInterval
 }
 
 /**
@@ -740,89 +756,106 @@ PartitionInterval.union = function(partitionInterval, interval) {
  * @return {PartitionInterval}
  */
 PartitionInterval.difference = function(partitionInterval, interval) {
-    if (!(partitionInterval instanceof PartitionInterval) || !(interval instanceof Interval)) {
+    if (!(partitionInterval instanceof PartitionInterval)) {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
-    if (!partitionInterval.interval) {
-        // ce je prazen list
-        return partitionInterval
-    }
-    if (partitionInterval.interval.isEmpty()) {
-        // ce je praze, ga naredi da je prazen list
-        return partitionInterval.assign(new PartitionInterval())
-    }
-    if (partitionInterval.interval.includes(interval)) {
-        // partitionInterval.interval razdeli na dva dela
-        var newRight = new PartitionInterval(
-            new Interval(
-                interval.rightBound.complement(),
-                partitionInterval.interval.rightBound
-            )
-        )
-        // desni del originalnega nastavi kot desnega od desnega dela
-        newRight.right.assign(partitionInterval.right)
-        // desni del nastavi kot desni del levega dela
-        partitionInterval.right.assign(newRight)
-        // skrci originalni interval
-        partitionInterval.interval.assign(
-            new Interval(
-                partitionInterval.interval.leftBound,
-                interval.leftBound.complement()
-            )
-        )
-    } else {
-        if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
-            // rekurzivno poklici difference nad levim otrokom
-            PartitionInterval.difference(
-                partitionInterval.left,
+    if (interval instanceof Interval) {
+        if (!partitionInterval.interval) {
+            // ce je prazen list
+            return partitionInterval
+        }
+        if (partitionInterval.interval.isEmpty()) {
+            // ce je praze, ga naredi da je prazen list
+            return partitionInterval.assign(new PartitionInterval())
+        }
+        if (partitionInterval.interval.intersect(interval).isEmpty()) {
+            if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
+                PartitionInterval.difference(partitionInterval.left, interval)
+            } else {
+                PartitionInterval.difference(partitionInterval.right, interval)
+            }
+            return partitionInterval
+        }
+        if (partitionInterval.interval.includes(interval)) {
+            // partitionInterval.interval razdeli na dva dela
+            var newRight = new PartitionInterval(
                 new Interval(
-                    interval.leftBound.copy(),
-                    partitionInterval.interval.leftBound.complement()
+                    interval.rightBound.complement(),
+                    partitionInterval.interval.rightBound
                 )
             )
-            // skrci interval
-            Interval.difference(partitionInterval.interval, interval)
-        }
-    
-        if (partitionInterval.interval.isEmpty() || interval.rightBound.compareTo(partitionInterval.interval.rightBound) > 0) {
-            // rekurzivno poklici difference nad desnim otrokom
-            PartitionInterval.difference(
-                partitionInterval.right,
+            // desni del originalnega nastavi kot desnega od desnega dela
+            newRight.right.assign(partitionInterval.right)
+            // desni del nastavi kot desni del levega dela
+            partitionInterval.right.assign(newRight)
+            // skrci originalni interval
+            partitionInterval.interval.assign(
                 new Interval(
-                    partitionInterval.interval.rightBound.complement(),
-                    interval.rightBound.copy()
+                    partitionInterval.interval.leftBound,
+                    interval.leftBound.complement()
                 )
             )
-            // skrci interval
-            Interval.difference(partitionInterval.interval, interval)
-        }
-    
-    }
-    if (interval.includes(partitionInterval.interval)) {
-        partitionInterval.interval.assign(Interval.EmptyInterval())
-    }
-    if (partitionInterval.interval.isEmpty()) {
-        // to pomeni, da je blo interval.includes(partitionInterval.interval) na zacetku true
-        // naredi unijo med desnim otrokom in desnim otrokom levega otroka
-        if (partitionInterval.left.right) {
-            // // TODO: optimiziraj, lahko ga nastavis kot najbolj levega, ker ves da so vsi manjsi
-            // partitionInterval.left.right.toArray().forEach(function(interval) {
-            //     PartitionInterval.union(partitionInterval.right, interval)
-            // })
-            PartitionInterval.setAsLeftmost(partitionInterval.right, partitionInterval.left.right, true)
         } else {
-            partitionInterval.left.right = new PartitionInterval()
+            if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
+                // rekurzivno poklici difference nad levim otrokom
+                PartitionInterval.difference(
+                    partitionInterval.left,
+                    new Interval(
+                        interval.leftBound.copy(),
+                        partitionInterval.interval.leftBound.complement()
+                    )
+                )
+                // skrci interval
+                Interval.difference(partitionInterval.interval, interval)
+            }
+        
+            if (partitionInterval.interval.isEmpty() || interval.rightBound.compareTo(partitionInterval.interval.rightBound) > 0) {
+                // rekurzivno poklici difference nad desnim otrokom
+                PartitionInterval.difference(
+                    partitionInterval.right,
+                    new Interval(
+                        partitionInterval.interval.rightBound.complement(),
+                        interval.rightBound.copy()
+                    )
+                )
+                // skrci interval
+                Interval.difference(partitionInterval.interval, interval)
+            }
+        
         }
-
-
-        // nastavi desnega otroka kot desnega otroka levega otroka
-        partitionInterval.left.right.assign(partitionInterval.right)
-
-        // nastavi levega otroka kot partitionInterval
-        partitionInterval.assign(partitionInterval.left)
+        if (interval.includes(partitionInterval.interval)) {
+            partitionInterval.interval.assign(Interval.EmptyInterval())
+        }
+        if (partitionInterval.interval.isEmpty()) {
+            // to pomeni, da je blo interval.includes(partitionInterval.interval) na zacetku true
+            // naredi unijo med desnim otrokom in desnim otrokom levega otroka
+            if (partitionInterval.left.right) {
+                // // TODO: optimiziraj, lahko ga nastavis kot najbolj levega, ker ves da so vsi manjsi
+                // partitionInterval.left.right.toArray().forEach(function(interval) {
+                //     PartitionInterval.union(partitionInterval.right, interval)
+                // })
+                PartitionInterval.setAsLeftmost(partitionInterval.right, partitionInterval.left.right, true)
+            } else {
+                partitionInterval.left.right = new PartitionInterval()
+            }
+    
+    
+            // nastavi desnega otroka kot desnega otroka levega otroka
+            partitionInterval.left.right.assign(partitionInterval.right)
+    
+            // nastavi levega otroka kot partitionInterval
+            partitionInterval.assign(partitionInterval.left)
+        }
+    
+        return partitionInterval
+    } else if (interval instanceof PartitionInterval) {
+        interval.toArray().forEach(function(interval) {
+            PartitionInterval.difference(partitionInterval, interval)
+        })
+        return partitionInterval
+    } else {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
     }
-
-    return partitionInterval
 }
 
 /**
@@ -831,69 +864,78 @@ PartitionInterval.difference = function(partitionInterval, interval) {
  * @return {PartitionInterval}
  */
 PartitionInterval.intersect = function(partitionInterval, interval) {
-    if (!(partitionInterval instanceof PartitionInterval) || !(interval instanceof Interval)) {
+    if (!(partitionInterval instanceof PartitionInterval)) {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
-    if (!partitionInterval.interval || partitionInterval.interval.isEmpty()) {
-        // ce je prazen, ga naredi da je prazen list
-        // return partitionInterval.assign(new PartitionInterval())
-        partitionInterval = new PartitionInterval()
-        return partitionInterval
-    }
-    if (partitionInterval.interval.includes(interval)) {
-        return partitionInterval.interval.assign(interval)
-    }
-    if (interval.includes(partitionInterval.interval)) {
-        PartitionInterval.intersect(
-            partitionInterval.left,
-            new Interval(
-                interval.leftBound.copy(),
-                partitionInterval.interval.leftBound.complement()
-            )
-        )
-        PartitionInterval.intersect(
-            partitionInterval.right,
-            new Interval(
-                partitionInterval.interval.rightBound.complement(),
-                interval.rightBound.copy()
-            )
-        )
-        return partitionInterval
-    } else {
-        if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
-            return partitionInterval.assign(
-                PartitionInterval.union(
-                    PartitionInterval.intersect(
-                        partitionInterval.left,
-                        new Interval(
-                            interval.leftBound.copy(),
-                            partitionInterval.interval.leftBound.complement()
-                        )
-                    ), 
-                    new Interval(
-                        partitionInterval.interval.leftBound.copy(),
-                        interval.rightBound.copy()
-                    )
+    if (interval instanceof Interval) {
+        if (!partitionInterval.interval || partitionInterval.interval.isEmpty()) {
+            // ce je prazen, ga naredi da je prazen list
+            // return partitionInterval.assign(new PartitionInterval())
+            partitionInterval = new PartitionInterval()
+            return partitionInterval
+        }
+        if (partitionInterval.interval.includes(interval)) {
+            return partitionInterval.interval.assign(interval)
+        }
+        if (interval.includes(partitionInterval.interval)) {
+            PartitionInterval.intersect(
+                partitionInterval.left,
+                new Interval(
+                    interval.leftBound.copy(),
+                    partitionInterval.interval.leftBound.complement()
                 )
             )
-        }
-        if (interval.rightBound.compareTo(partitionInterval.interval.rightBound) > 0) {
-            return partitionInterval.assign(
-                PartitionInterval.union(
-                    PartitionInterval.intersect(
-                        partitionInterval.right,
+            PartitionInterval.intersect(
+                partitionInterval.right,
+                new Interval(
+                    partitionInterval.interval.rightBound.complement(),
+                    interval.rightBound.copy()
+                )
+            )
+            return partitionInterval
+        } else {
+            if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
+                return partitionInterval.assign(
+                    PartitionInterval.union(
+                        PartitionInterval.intersect(
+                            partitionInterval.left,
+                            new Interval(
+                                interval.leftBound.copy(),
+                                partitionInterval.interval.leftBound.complement()
+                            )
+                        ), 
                         new Interval(
-                            partitionInterval.interval.rightBound.complement(),
+                            partitionInterval.interval.leftBound.copy(),
                             interval.rightBound.copy()
                         )
-                    ),
-                    new Interval(
-                        interval.leftBound.copy(),
-                        partitionInterval.interval.rightBound.copy()
                     )
                 )
-            )
+            }
+            if (interval.rightBound.compareTo(partitionInterval.interval.rightBound) > 0) {
+                return partitionInterval.assign(
+                    PartitionInterval.union(
+                        PartitionInterval.intersect(
+                            partitionInterval.right,
+                            new Interval(
+                                partitionInterval.interval.rightBound.complement(),
+                                interval.rightBound.copy()
+                            )
+                        ),
+                        new Interval(
+                            interval.leftBound.copy(),
+                            partitionInterval.interval.rightBound.copy()
+                        )
+                    )
+                )
+            }
         }
+    } else if (interval instanceof PartitionInterval) {
+        interval.toArray().forEach(function(interval) {
+            PartitionInterval.intersect(partitionInterval, interval)
+        })
+        return partitionInterval
+    } else {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
     }
 }
 
