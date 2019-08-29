@@ -412,7 +412,7 @@ Interval.Singleton = function(value) {
 Interval.prototype.isEmpty = function() {
     return (this.leftBound instanceof LeftBoundOpen) 
     && (this.rightBound instanceof RightBoundOpen)
-    && (this.rightBound.value - this.leftBound.value <= 1)
+    && (this.rightBound.value - this.leftBound.value <= 0)
 }
 
 /**
@@ -603,12 +603,14 @@ Interval.prototype.assign = function(interval) {
  */
 var PartitionInterval = function(interval) {
     if (interval !== undefined) {
-        if (!(interval instanceof Interval)) {
-            throw new Error(ERROR_WRONG_ARGUMENTS)
-        } else {
+        if (interval instanceof Interval) {
             this.interval = interval
             this.left = new PartitionInterval()
             this.right = new PartitionInterval()
+        } else if (interval instanceof PartitionInterval) {
+            this.assign(interval)
+        } else {
+            throw new Error(ERROR_WRONG_ARGUMENTS)
         }
     }
 }
@@ -621,8 +623,9 @@ PartitionInterval.fromIntervals = function(intervals) {
     if (intervals.constructor === Array) {
         var partitionInterval = new PartitionInterval()
         intervals.forEach(function(interval) {
-            partitionInterval.union(interval)
+            PartitionInterval.union(partitionInterval, interval)
         });
+        return partitionInterval
     } else {
         throw new Error(ERROR_WRONG_ARGUMENTS)
     }
@@ -983,6 +986,28 @@ PartitionInterval.prototype.copy = function(deep) {
  */
 PartitionInterval.prototype.isEmpty = function() {
     return !this.interval || this.interval.isEmpty()
+}
+
+PartitionInterval.prototype.equals = function(interval) {
+    if (interval instanceof PartitionInterval) {
+        var a1 = this.toArray()
+        var a2= interval.toArray()
+        // console.log("compare", a1, "with", a2)
+        if (a1.length === a2.length) {
+            for (var i = 0; i < a1.length; i++) {
+                if (!(a1[i].equals(a2[i]))) {
+                    return false
+                }
+            }
+            return true
+        } else {
+            return false
+        }
+    } else if (interval instanceof Interval) {
+        return interval.equals(this.interval) && this.left.isEmpty() && this.right.isEmpty()
+    } else {
+        throw new Error(ERROR_WRONG_ARGUMENTS)
+    }
 }
 
 /**

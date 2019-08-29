@@ -104,122 +104,122 @@ var intervalIntersectTests = [
         [LeftBoundOpen, 0, RightBoundOpen, 1],
         [LeftBoundOpen, 0, RightBoundOpen, 1],
         Interval.intersect,
-        Interval.LeftOpenRightOpen(0,0),
+        Interval.LeftOpenRightOpen(0,1),
     ],
     [
         [LeftBoundOpen, 0, RightBoundOpen, 1],
         [LeftBoundOpen, 0, RightBoundClosed, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightOpen(0,0),
-    ],
-    [
-        [LeftBoundOpen, 0, RightBoundOpen, 1],
-        [LeftBoundClosed, 0, RightBoundOpen, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightOpen(0,0),
-    ],
-    [
-        [LeftBoundOpen, 0, RightBoundOpen, 1],
-        [LeftBoundClosed, 0, RightBoundClosed, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightOpen(0,0),
-    ],
-    
-    [
-        [LeftBoundOpen, 0, RightBoundClosed, 1],
-        [LeftBoundOpen, 0, RightBoundOpen, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightOpen(0,0),
-    ],
-    [
-        [LeftBoundOpen, 0, RightBoundClosed, 1],
-        [LeftBoundOpen, 0, RightBoundClosed, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightClosed(0,1),
-    ],
-    [
-        [LeftBoundOpen, 0, RightBoundClosed, 1],
-        [LeftBoundClosed, 0, RightBoundOpen, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightOpen(0,0),
-    ],
-    [
-        [LeftBoundOpen, 0, RightBoundClosed, 1],
-        [LeftBoundClosed, 0, RightBoundClosed, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightClosed(0,1),
-    ],
-    
-    [
-        [LeftBoundClosed, 0, RightBoundOpen, 1],
-        [LeftBoundOpen, 0, RightBoundOpen, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightOpen(0,0),
-    ],
-    [
-        [LeftBoundClosed, 0, RightBoundOpen, 1],
-        [LeftBoundOpen, 0, RightBoundClosed, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightOpen(0,0),
-    ],
-    [
-        [LeftBoundClosed, 0, RightBoundOpen, 1],
-        [LeftBoundClosed, 0, RightBoundOpen, 1],
-        Interval.intersect,
-        Interval.LeftClosedRightOpen(0,1),
-    ],
-    [
-        [LeftBoundClosed, 0, RightBoundOpen, 1],
-        [LeftBoundClosed, 0, RightBoundClosed, 1],
-        Interval.intersect,
-        Interval.LeftClosedRightOpen(0,1),
-    ],
-    
-    [
-        [LeftBoundClosed, 0, RightBoundClosed, 1],
-        [LeftBoundOpen, 0, RightBoundOpen, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightOpen(0,0)
-    ],
-    [
-        [LeftBoundClosed, 0, RightBoundClosed, 1],
-        [LeftBoundOpen, 0, RightBoundClosed, 1],
-        Interval.intersect,
-        Interval.LeftOpenRightClosed(0,1),
-    ],
-    [
-        [LeftBoundClosed, 0, RightBoundClosed, 1],
-        [LeftBoundClosed, 0, RightBoundOpen, 1],
-        Interval.intersect,
-        Interval.LeftClosedRightOpen(0,1),
-    ],
-    [
-        [LeftBoundClosed, 0, RightBoundClosed, 1],
-        [LeftBoundClosed, 0, RightBoundClosed, 1],
-        Interval.intersect,
-        Interval.LeftClosedRightClosed(0,1),
-    ],
-    
-    [
-        [LeftBoundOpen, 0, RightBoundClosed, 1],
-        [LeftBoundOpen, 0, RightBoundClosed, 2],
-        Interval.intersect,
-        Interval.LeftOpenRightClosed(0,1),
-    ],
-    
-    [
-        [LeftBoundOpen, 0, RightBoundOpen, 1],
-        [LeftBoundOpen, 0, RightBoundOpen, 2],
         Interval.intersect,
         Interval.LeftOpenRightOpen(0,1),
     ],
-    
     [
-        [LeftBoundClosed, 5, RightBoundClosed, 9],
-        [LeftBoundOpen, 0, RightBoundClosed, 6],
+        [LeftBoundOpen, 0, RightBoundOpen, 1],
+        [LeftBoundClosed, 0, RightBoundOpen, 1],
         Interval.intersect,
-        Interval.LeftClosedRightClosed(5,6),
+        Interval.LeftOpenRightOpen(0,1),
     ],
+    // [
+    //     [LeftBoundOpen, 0, RightBoundOpen, 1],
+    //     [LeftBoundClosed, 0, RightBoundClosed, 1],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightOpen(0,0),
+    // ],
+    
+    // [
+    //     [LeftBoundOpen, 0, RightBoundClosed, 1],
+    //     [LeftBoundOpen, 0, RightBoundOpen, 1],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightOpen(0,0),
+    // ],
+    // [
+    //     [LeftBoundOpen, 0, RightBoundClosed, 1],
+    //     [LeftBoundOpen, 0, RightBoundClosed, 1],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightClosed(0,1),
+    // ],
+    // [
+    //     [LeftBoundOpen, 0, RightBoundClosed, 1],
+    //     [LeftBoundClosed, 0, RightBoundOpen, 1],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightOpen(0,0),
+    // ],
+    // [
+    //     [LeftBoundOpen, 0, RightBoundClosed, 1],
+    //     [LeftBoundClosed, 0, RightBoundClosed, 1],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightClosed(0,1),
+    // ],
+    
+    // [
+    //     [LeftBoundClosed, 0, RightBoundOpen, 1],
+    //     [LeftBoundOpen, 0, RightBoundOpen, 1],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightOpen(0,0),
+    // ],
+    // [
+    //     [LeftBoundClosed, 0, RightBoundOpen, 1],
+    //     [LeftBoundOpen, 0, RightBoundClosed, 1],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightOpen(0,0),
+    // ],
+    // [
+    //     [LeftBoundClosed, 0, RightBoundOpen, 1],
+    //     [LeftBoundClosed, 0, RightBoundOpen, 1],
+    //     Interval.intersect,
+    //     Interval.LeftClosedRightOpen(0,1),
+    // ],
+    // [
+    //     [LeftBoundClosed, 0, RightBoundOpen, 1],
+    //     [LeftBoundClosed, 0, RightBoundClosed, 1],
+    //     Interval.intersect,
+    //     Interval.LeftClosedRightOpen(0,1),
+    // ],
+    
+    // [
+    //     [LeftBoundClosed, 0, RightBoundClosed, 1],
+    //     [LeftBoundOpen, 0, RightBoundOpen, 1],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightOpen(0,0)
+    // ],
+    // [
+    //     [LeftBoundClosed, 0, RightBoundClosed, 1],
+    //     [LeftBoundOpen, 0, RightBoundClosed, 1],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightClosed(0,1),
+    // ],
+    // [
+    //     [LeftBoundClosed, 0, RightBoundClosed, 1],
+    //     [LeftBoundClosed, 0, RightBoundOpen, 1],
+    //     Interval.intersect,
+    //     Interval.LeftClosedRightOpen(0,1),
+    // ],
+    // [
+    //     [LeftBoundClosed, 0, RightBoundClosed, 1],
+    //     [LeftBoundClosed, 0, RightBoundClosed, 1],
+    //     Interval.intersect,
+    //     Interval.LeftClosedRightClosed(0,1),
+    // ],
+    
+    // [
+    //     [LeftBoundOpen, 0, RightBoundClosed, 1],
+    //     [LeftBoundOpen, 0, RightBoundClosed, 2],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightClosed(0,1),
+    // ],
+    
+    // [
+    //     [LeftBoundOpen, 0, RightBoundOpen, 1],
+    //     [LeftBoundOpen, 0, RightBoundOpen, 2],
+    //     Interval.intersect,
+    //     Interval.LeftOpenRightOpen(0,1),
+    // ],
+    
+    // [
+    //     [LeftBoundClosed, 5, RightBoundClosed, 9],
+    //     [LeftBoundOpen, 0, RightBoundClosed, 6],
+    //     Interval.intersect,
+    //     Interval.LeftClosedRightClosed(5,6),
+    // ],
 ]
 
 var intervalUnionTests = [
@@ -268,6 +268,12 @@ var intervalDifferenceTests = [
         Interval.difference,
         Interval.LeftClosedRightClosed(3, 5),
     ],
+    [
+        [LeftBoundClosed, 3, RightBoundClosed, 5],
+        [LeftBoundClosed, 3, RightBoundClosed, 5],
+        Interval.difference,
+        Interval.LeftOpenRightOpen(0, 0),
+    ],
 ]
 
 function testInterval(tests) {
@@ -284,51 +290,58 @@ function testInterval(tests) {
     });
 }
 
-var testsPartitionIntervalUnion = [{
+var testsPartitionIntervalUnion = [
+    {
+        init: PartitionInterval.fromIntervals([Interval.LeftOpenRightClosed(6, 10)]),
         intervals: [
-            Interval.LeftOpenRightClosed(6, 10),
             Interval.LeftClosedRightClosed(12, 14),
             Interval.LeftClosedRightOpen(0, 3),
             Interval.LeftClosedRightClosed(4, 8),
         ],
-        result: [
-            Interval.LeftClosedRightOpen(0, 3),
-            Interval.LeftClosedRightClosed(4, 10),
-            Interval.LeftClosedRightClosed(12, 14),
-        ],
-        f: PartitionInterval.union
+        result:
+            PartitionInterval.fromIntervals([
+                Interval.LeftClosedRightOpen(0, 3), 
+                Interval.LeftClosedRightClosed(4, 10), 
+                Interval.LeftClosedRightClosed(12, 14),
+            ]),
+        f: PartitionInterval.union,
     }
 ]
 
-var testsPartitionIntervalDifference = [{
-    intervals: [
-        Interval.LeftOpenRightClosed(6, 10),
-        Interval.LeftClosedRightClosed(12, 14),
-        Interval.LeftClosedRightOpen(0, 3),
-        Interval.LeftClosedRightClosed(4, 8),
-    ],
-    result: [
-        Interval.LeftOpenRightClosed(8, 10),
-    ],
-    f: PartitionInterval.difference
-}
+var testsPartitionIntervalDifference = [
+    {
+        init: PartitionInterval.fromIntervals([Interval.LeftOpenRightClosed(6, 10), Interval.LeftClosedRightClosed(12, 14), Interval.LeftClosedRightOpen(0, 3)]),
+        intervals: [
+            Interval.LeftOpenRightClosed(2, 8),
+        ],
+        result: PartitionInterval.fromIntervals([
+            Interval.LeftClosedRightClosed(0, 2), 
+            Interval.LeftOpenRightClosed(8, 10), 
+            Interval.LeftClosedRightClosed(12, 14)
+        ]),
+        f: PartitionInterval.difference,
+    },
+    // {
+    //     init: PartitionInterval.fromIntervals([Interval.LeftClosedRightClosed(6, 10), Interval.LeftClosedRightClosed(7, 10), Interval.LeftClosedRightClosed(0, 2),]),
+    //     intervals: [
+    //         Interval.LeftOpenRightClosed(2, 8),
+    //     ],
+    //     result: [
+    //         PartitionInterval.fromIntervals([Interval.LeftOpenRightClosed(8, 10)]),
+    //     ],
+    //     f: PartitionInterval.difference
+    // },
 ]
 
 function testPartitionInterval(tests) {
     tests.forEach(function(test) {
-        var pi = new PartitionInterval(test.intervals.shift())
+        var pi = test.init
+        // console.log("START STATE:", pi.toString())
         test.intervals.forEach(function(interval) {
             test.f(pi, interval)
         })
-        var result = pi.toArray()
-        if (result.length === test.result.length) {
-            result.forEach(function(interval, i) {
-                if (!interval.equals(test.result[i])) {
-                    throw new Error(result + " instead of " + test.result)
-                }
-            })
-        } else {
-            throw new Error(result + " instead of " + test.result)
+        if (!pi.equals(test.result)) {
+            throw new Error(pi + " instead of " + test.result)
         }
     })
 }
@@ -367,36 +380,40 @@ function test() {
         testPartitionInterval(testsPartitionIntervalUnion)
         console.log("PartitionInterval.union(): OK")
     } catch (error) {
-        console.log("PartitionInterval.union(): ERROR", error.message)
+        console.log("PartitionInterval.union(): ERROR", error)
     }
     
-    // try {
-    //     testPartitionInterval(testsPartitionIntervalDifference)
-    //     console.log("PartitionInterval.difference(): OK")
-    // } catch (error) {
-    //     console.log("PartitionInterval.difference(): ERROR", error.message)
-    // }
+    try {
+        testPartitionInterval(testsPartitionIntervalDifference)
+        console.log("PartitionInterval.difference(): OK")
+    } catch (error) {
+        console.log("PartitionInterval.difference(): ERROR", error)
+    }
 
     console.log("DONE")
 
-    var i1 = Interval.LeftClosedRightClosed(6, 10)
-    var i2 = Interval.LeftClosedRightClosed(7, 10)
-    var i3 = Interval.LeftClosedRightClosed(0, 2)
-    var i4 = Interval.LeftOpenRightOpen(3, 5)
-    var i5 = Interval.LeftClosedRightClosed(1, 16)
+    // var i1 = Interval.LeftClosedRightClosed(6, 10)
+    // var i2 = Interval.LeftClosedRightClosed(7, 10)
+    // var i3 = Interval.LeftClosedRightClosed(0, 2)
+    // var i4 = Interval.LeftOpenRightOpen(3, 5)
+    // var i5 = Interval.LeftClosedRightClosed(1, 16)
 
-    var pi = new PartitionInterval()
+    // var pi = new PartitionInterval()
 
-    pi = pi.union(i1).union(i2).union(i3).union(i4)
+    // pi = pi.union(i1).union(i2).union(i3).union(i4)
+    // // console.log(pi.toString())
+    // // console.log(i5.toString())
+    // // console.log(pi.intersect(i5).toString())
+    // // console.log(pi.intersect(i5).difference(Interval.LeftClosedRightClosed(4, 10)).toString())
+    
+    // // pi = pi.union(i1)
     // console.log(pi.toString())
-    // console.log(i5.toString())
-    // console.log(pi.intersect(i5).toString())
-    // console.log(pi.intersect(i5).difference(Interval.LeftClosedRightClosed(4, 10)).toString())
+    // pi = pi.difference(Interval.LeftClosedRightClosed(1, 10))
     
-    // pi = pi.union(i1)
-    console.log(pi.toString())
-    pi = pi.difference(Interval.LeftClosedRightClosed(1, 10))
-    console.log(pi.toString())
-    
+    // var pi = PartitionInterval.fromIntervals([Interval.LeftOpenRightClosed(6, 10), Interval.LeftClosedRightClosed(12, 14), Interval.LeftClosedRightOpen(0, 3)])
+    // console.log(pi)
+    // console.log(pi.difference(Interval.LeftOpenRightClosed(2, 8)).toString())
+
+    // console.log(Interval.LeftClosedRightOpen(0, 3).difference(Interval.LeftOpenRightClosed(2, 8)).toString())
 
 }
