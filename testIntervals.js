@@ -1,3 +1,4 @@
+/*
 var boundsTests = [
     // LeftBoundOpen
     [
@@ -345,9 +346,10 @@ function testPartitionInterval(tests) {
             throw new Error(pi + " instead of " + test.result)
         }
     })
-}
+}/**/
 
 function test() {
+    /*
     console.log("Testing ...")
     try {
         testBounds(boundsTests)
@@ -391,50 +393,8 @@ function test() {
         console.log("PartitionInterval.difference(): ERROR", error)
     }
 
-    console.log("DONE")
-
-    // var i1 = Interval.LeftClosedRightClosed(6, 10)
-    // var i2 = Interval.LeftClosedRightClosed(7, 10)
-    // var i3 = Interval.LeftClosedRightClosed(0, 2)
-    // var i4 = Interval.LeftOpenRightOpen(3, 5)
-    // var i5 = Interval.LeftClosedRightClosed(1, 16)
-
-    // var pi = new PartitionInterval()
-
-    // pi = pi.union(i1).union(i2).union(i3).union(i4)
-    // // console.log(pi.toString())
-    // // console.log(i5.toString())
-    // // console.log(pi.intersect(i5).toString())
-    // // console.log(pi.intersect(i5).difference(Interval.LeftClosedRightClosed(4, 10)).toString())
-    
-    // // pi = pi.union(i1)
-    // console.log(pi.toString())
-    // pi = pi.difference(Interval.LeftClosedRightClosed(1, 10))
-    
-    // var pi = PartitionInterval.fromIntervals([Interval.LeftOpenRightClosed(6, 10), Interval.LeftClosedRightClosed(12, 14), Interval.LeftClosedRightOpen(0, 3)])
-    // console.log(pi)
-    // console.log(pi.difference(Interval.LeftOpenRightClosed(2, 8)).toString())
-
-    // var pi1 = PartitionInterval.fromIntervals([
-    //     Interval.LeftClosedRightClosed(4,9),
-    //     Interval.LeftClosedRightClosed(0,3),
-    //     Interval.LeftClosedRightClosed(20, 21),
-    // ])
-    // console.log(pi1.toString())
-
-    // var pi2 = PartitionInterval.fromIntervals([
-    //     Interval.LeftOpenRightOpen(20, 21),
-        // Interval.LeftOpenRightOpen(2, 5),
-        // Interval.LeftOpenRightOpen(5, 9),
-    // ])
-    // console.log(pi2.toString())
-
-    // console.log(pi1.difference(pi2).toString())
-
-
-    // console.log(Interval.LeftClosedRightClosed(2,5).includes(Interval.LeftOpenRightOpen(2,5)))
-    // console.log(Interval.LeftClosedRightClosed(2,5).difference(Interval.LeftOpenRightOpen(2,5)).toString())
-
+    console.log("DONE")/**/
+    /*
     var operations = [
         PartitionInterval.union,
         // PartitionInterval.intersect,
@@ -447,16 +407,93 @@ function test() {
         Interval.LeftOpenRightOpen,
     ]
     var pi = new PartitionInterval()
-    for (var i = 0; i < 1000; i++) {
+    var t0 = performance.now();
+    for (var i = 0; i < 1000000; i++) {
         // var rl = Math.floor(Math.random() * 1000)
         // var rr = rl + Math.floor(Math.random() * 1000)
         // var ri = Math.floor(Math.random() * intervals.length)
         // var ro = Math.floor(Math.random() * operations.length)
         // operations[ro](pi, intervals[ri](rl, rr))
-
-        operations[0](pi, intervals[3](i, i + 1))
+        var interval = intervals[3](i, i + 1)
+        pi = operations[0](pi, interval)
+        // console.log(pi.toString() + ",", interval.toString())
     }
-    console.log(pi.toString())
-    console.log(pi)
+    var t1 = performance.now();
+    // console.log(pi.toString())
+    // console.log(pi)
+    console.log("DONE", t1 - t0, pi.toString())
+    console.log("DONE", t1 - t0, pi)/**/
+
+    // var pi = PartitionInterval.fromIntervals([
+    //     Interval.LeftClosedRightClosed(0,4),
+    //     Interval.LeftClosedRightClosed(6,8),
+    //     // Interval.LeftClosedRightClosed(10,18),
+    // ])
+
+    // var pi = new PartitionInterval()
+    // pi = pi.union(Interval.LeftClosedRightClosed(0,4))
+    // pi = pi.union(Interval.LeftClosedRightClosed(6,8))
+    // pi = pi.union(Interval.LeftClosedRightClosed(20,22))
+    // pi = pi.union(Interval.LeftClosedRightClosed(16,17))
+    // pi = pi.union(Interval.LeftClosedRightClosed(4,15))
+
+    /**
+     * Shuffles array in place.
+     * @param {Array} a items An array containing the items.
+     */
+    function shuffle(a) {
+        var j, x, i;
+        for (i = a.length - 1; i > 0; i--) {
+            j = Math.floor(Math.random() * (i + 1));
+            x = a[i];
+            a[i] = a[j];
+            a[j] = x;
+        }
+        return a;
+    }
+
+    var intervals = [
+        Interval.LeftClosedRightClosed(0,4),
+        Interval.LeftClosedRightClosed(2,3),
+        Interval.LeftClosedRightClosed(5,9),
+        Interval.LeftClosedRightClosed(23,34),
+        Interval.LeftClosedRightClosed(12,13),
+        Interval.LeftClosedRightClosed(14,15),
+        Interval.LeftClosedRightClosed(16,17),
+        Interval.LeftClosedRightClosed(16,17),
+        Interval.LeftOpenRightClosed(15,18),
+        Interval.LeftClosedRightOpen(13,15),
+    ]
+
+    var res = PartitionInterval.fromIntervals([
+        Interval.LeftClosedRightClosed(0,4),
+        Interval.LeftClosedRightClosed(5,9),
+        Interval.LeftClosedRightClosed(12,18),
+        Interval.LeftClosedRightClosed(23,34),
+    ])
+
+    console.log()
+    console.log()
+    console.log()
+    for (var i = 0; i < 1; i++) {
+        shuffle(intervals)
+        var tmp = PartitionInterval.fromIntervals(intervals)
+        if (!res.equals(tmp)) {
+            console.log("false", res.toString() + ",", tmp.toString())
+            break
+        }
+        if (i === 0) {
+            console.log("true")
+        }
+    }
+
+    // console.log(PartitionInterval.fromIntervals(intervals).toString())
+
+    // console.log(pi.toString(), pi)
+    // console.log(pi)
+    // pi = pi.rotateLeft()
+
+    // console.log(pi.toString() + ",", pi.interval.toString())
+    // console.log(pi)
 
 }

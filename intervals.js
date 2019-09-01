@@ -607,12 +607,114 @@ var PartitionInterval = function(interval) {
             this.interval = interval
             this.left = new PartitionInterval()
             this.right = new PartitionInterval()
+            this.height = 0
         } else if (interval instanceof PartitionInterval) {
             this.assign(interval)
         } else {
             throw new Error(ERROR_WRONG_ARGUMENTS)
         }
     }
+}
+
+PartitionInterval.prototype.leftHeight = function() {
+    // if (!this.left) {
+    //     return -1
+    // }
+    if (!this.left || !this.left.interval) {
+        return -1
+    }
+    // console.log("left height", this.right.height, this)
+    return this.left.height
+}
+
+PartitionInterval.prototype.rightHeight = function() {
+    // if (!this.right) {
+    //     return -1
+    // }
+    if (!this.right || !this.right.interval) {
+        return -1
+    }
+    // console.log("right height", this.right.height, this)
+    return this.right.height
+}
+
+/**
+ * Represents how balanced a node's left and right children are.
+ *
+ * @private
+ */
+var BalanceState = {
+    UNBALANCED_RIGHT: 1,
+    SLIGHTLY_UNBALANCED_RIGHT: 2,
+    BALANCED: 3,
+    SLIGHTLY_UNBALANCED_LEFT: 4,
+    UNBALANCED_LEFT: 5
+};
+  
+/**
+ * Gets the balance state of a node, indicating whether the left or right
+ * sub-trees are unbalanced.
+ *
+ * @private
+ * @param {PartitionInterval} node The node to get the difference from.
+ * @return {BalanceState} The BalanceState of the node.
+ */
+function getBalanceState(node) {
+    var heightDifference = node.leftHeight() - node.rightHeight();
+    // console.log("heightDifference", node.toString() + ",", node.interval.toString(), heightDifference, node)
+    switch (heightDifference) {
+        case -2: return BalanceState.UNBALANCED_RIGHT;
+        case -1: return BalanceState.SLIGHTLY_UNBALANCED_RIGHT;
+        case 1: return BalanceState.SLIGHTLY_UNBALANCED_LEFT;
+        case 2: return BalanceState.UNBALANCED_LEFT;
+        default: return BalanceState.BALANCED;
+    }
+}
+
+/**
+ * Performs a right rotate on this node.
+ *
+ *       b                           a
+ *      / \                         / \
+ *     a   e -> b.rotateRight() -> c   b
+ *    / \                             / \
+ *   c   d                           d   e
+ *
+ * @return {Node} The root of the sub-tree; the node where this node used to be.
+ */
+PartitionInterval.rotateRight = function(pi) {
+    pi.right = pi.copy()
+    pi.interval = pi.left.interval
+    pi.right.left = pi.left.right
+    pi.left = pi.left.left
+    return pi
+}
+
+PartitionInterval.prototype.rotateRight = function() {
+    return PartitionInterval.rotateRight(this.copy())
+}
+
+/**
+ * Performs a left rotate on this node.
+ *
+ *     a                              b
+ *    / \                            / \
+ *   c   b   -> a.rotateLeft() ->   a   e
+ *      / \                        / \
+ *     d   e                      c   d
+ *
+ * @return {Node} The root of the sub-tree; the node where this node used to be.
+ */
+PartitionInterval.rotateLeft = function(pi) {
+    pi.left = pi.copy()
+    pi.interval = pi.right.interval
+    pi.left.right = pi.right.left
+    pi.right = pi.right.right
+    return pi
+}
+
+PartitionInterval.prototype.rotateLeft = function() {
+    return PartitionInterval.rotateLeft(this.copy())
 }
 
 /**
@@ -624,6 +726,7 @@ PartitionInterval.fromIntervals = function(intervals) {
         var partitionInterval = new PartitionInterval()
         intervals.forEach(function(interval) {
             PartitionInterval.union(partitionInterval, interval)
+            console.log("---------------", partitionInterval.toString() + ",", "(" + partitionInterval.interval.toString() + ")" ,"-----------------")
         });
         return partitionInterval
     } else {
@@ -643,6 +746,7 @@ PartitionInterval.assign = function(partitionInterval1, partitionInterval2) {
     partitionInterval1.interval = partitionInterval2.interval
     partitionInterval1.left = partitionInterval2.left
     partitionInterval1.right = partitionInterval2.right
+    partitionInterval1.height = partitionInterval2.height
     return partitionInterval1
 }
 
@@ -692,15 +796,62 @@ PartitionInterval.union = function(partitionInterval, interval) {
         if (!partitionInterval.interval) {
             return partitionInterval.assign(new PartitionInterval(interval))
         }
+        console.log("insert", interval.toString(), "into", partitionInterval.toString())
         if (partitionInterval.interval.includes(interval)) {
             return partitionInterval
         }
         if (partitionInterval.interval.intersect(interval).isEmpty()) {
             if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
                 PartitionInterval.union(partitionInterval.left, interval)
+                var biggestInLeft = partitionInterval.left.rightMost()
+                if (biggestInLeft) {
+                    console.log("CHECKING biggestInLeft", biggestInLeft.interval.toString() + ",", partitionInterval.interval.toString(), "(" + partitionInterval.toString() + ")")
+                    if (biggestInLeft.interval.rightBound.complement().compareTo(partitionInterval.interval.leftBound) >= 0) {
+                        partitionInterval.interval.leftBound = biggestInLeft.interval.leftBound
+                        PartitionInterval.assign(biggestInLeft, biggestInLeft.left.copy())
+                    }
+                }
             } else {
                 PartitionInterval.union(partitionInterval.right, interval)
+                var smallestInRight = partitionInterval.right.leftMost()
+                if (smallestInRight) {
+                    console.log("CHECKING smallestInRight", partitionInterval.interval.toString(), "(" + partitionInterval.toString() + ")" + ",", smallestInRight.interval.toString())
+                    if (smallestInRight.interval && smallestInRight.interval.leftBound.complement().compareTo(partitionInterval.interval.rightBound) <= 0) {
+                        partitionInterval.interval.rightBound = smallestInRight.interval.rightBound
+                        PartitionInterval.assign(smallestInRight, smallestInRight.right.copy())
+                    }
+                }
             }
+
+            // Update height and rebalance tree
+            partitionInterval.height = Math.max(partitionInterval.leftHeight(), partitionInterval.rightHeight()) + 1;
+            var balanceState = getBalanceState(partitionInterval)
+            // console.log("balanceState", balanceState)
+            //*
+
+            if (balanceState === BalanceState.UNBALANCED_LEFT) {
+                // if (partitionInterval._compare(key, root.left.key) < 0) {
+                if (partitionInterval.interval.leftBound.compareTo(partitionInterval.left.interval.leftBound) > 0) {
+                    // console.log("Left left case")
+                    partitionInterval.rotateRight()
+                } else {
+                    // console.log("Left right case")
+                    partitionInterval.left.rotateLeft()
+                    return partitionInterval.rotateRight()
+                }
+            }
+
+            if (balanceState === BalanceState.UNBALANCED_RIGHT) {
+                // if (this._compare(key, root.right.key) > 0) {
+                if (partitionInterval.interval.leftBound.compareTo(partitionInterval.right.interval.leftBound) < 0) {
+                    // console.log("Right right case")
+                    partitionInterval.rotateLeft()
+                } else {
+                    // console.log("Right left case")
+                    partitionInterval.right.rotateRight()
+                    return partitionInterval.rotateLeft()
+                }
+            }/**/
             return partitionInterval
         }
         if (interval.leftBound.compareTo(partitionInterval.interval.leftBound) < 0) {
@@ -712,10 +863,14 @@ PartitionInterval.union = function(partitionInterval, interval) {
                 PartitionInterval.union(partitionInterval.left, 
                     new Interval(interval.leftBound, partitionInterval.interval.leftBound.complement())
                 )
+                // PartitionInterval.union(partitionInterval.left, 
+                //     new Interval(interval.leftBound, partitionInterval.interval.rightBound)
+                // )
             }
             // pridobi najbolj desnega od levega poddrevesa
             var biggestInLeft = partitionInterval.left.rightMost()
             if (biggestInLeft) {
+                console.log("CHECKING biggestInLeft", biggestInLeft.interval.toString() + ",", partitionInterval.interval.toString(), "(" + partitionInterval.toString() + ")")
                 // preveri ali se stikata
                 if (biggestInLeft.interval.rightBound.complement().compareTo(partitionInterval.interval.leftBound) >= 0) {
                     // razsiri pi na levo
@@ -733,13 +888,51 @@ PartitionInterval.union = function(partitionInterval, interval) {
                     partitionInterval.right,
                     new Interval(partitionInterval.interval.rightBound.complement(), interval.rightBound)    
                 )
+                // PartitionInterval.union(
+                //     partitionInterval.right,
+                //     new Interval(partitionInterval.interval.leftBound, interval.rightBound)    
+                // )
             }
             var smallestInRight = partitionInterval.right.leftMost()
-            if (smallestInRight && smallestInRight.interval && smallestInRight.interval.leftBound.complement().compareTo(partitionInterval.interval.rightBound) <= 0) {
-                partitionInterval.interval.rightBound = smallestInRight.interval.rightBound
-                PartitionInterval.assign(smallestInRight, smallestInRight.right.copy())
+            if (smallestInRight) {
+                console.log("CHECKING smallestInRight", partitionInterval.interval.toString(), "(" + partitionInterval.toString() + ")" + ",", smallestInRight.interval.toString())
+                if (smallestInRight.interval && smallestInRight.interval.leftBound.complement().compareTo(partitionInterval.interval.rightBound) <= 0) {
+                    partitionInterval.interval.rightBound = smallestInRight.interval.rightBound
+                    PartitionInterval.assign(smallestInRight, smallestInRight.right.copy())
+                }
             }
         }
+
+        // Update height and rebalance tree
+        partitionInterval.height = Math.max(partitionInterval.leftHeight(), partitionInterval.rightHeight()) + 1;
+        var balanceState = getBalanceState(partitionInterval)
+        // console.log("balanceState", balanceState)
+        //*
+
+        if (balanceState === BalanceState.UNBALANCED_LEFT) {
+            // if (partitionInterval._compare(key, root.left.key) < 0) {
+            if (partitionInterval.interval.leftBound.compareTo(partitionInterval.left.interval.leftBound) > 0) {
+                // console.log("Left left case")
+                partitionInterval.rotateRight()
+            } else {
+                // console.log("Left right case")
+                partitionInterval.left.rotateLeft()
+                return partitionInterval.rotateRight()
+            }
+        }
+
+        if (balanceState === BalanceState.UNBALANCED_RIGHT) {
+            // if (this._compare(key, root.right.key) > 0) {
+            if (partitionInterval.interval.leftBound.compareTo(partitionInterval.right.interval.leftBound) < 0) {
+                // console.log("Right right case")
+                partitionInterval.rotateLeft()
+            } else {
+                // console.log("Right left case")
+                partitionInterval.right.rotateRight()
+                return partitionInterval.rotateLeft()
+            }
+        }/**/
+
         return partitionInterval
     } else if (interval instanceof PartitionInterval) {
         interval.toArray().forEach(function(interval) {
@@ -1003,7 +1196,7 @@ PartitionInterval.prototype.rightMost = function() {
  */
 PartitionInterval.prototype.leftMost = function() {
     if (this.left.interval) {
-        return this.left.interval
+        return this.left
     } else {
         return this
     }
